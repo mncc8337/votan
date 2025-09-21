@@ -5,13 +5,14 @@ extends CharacterBody3D
 @export var gravity = -20.5
 
 @export var camera_sensitivity: float = 0.005
-@onready var camera = $Camera
 
 func _unhandled_input(event):
 	if Input.mouse_mode == Input.MOUSE_MODE_CAPTURED and event is InputEventMouseMotion:
-		rotation.y += -event.relative.x * camera_sensitivity
-		camera.rotation.x += -event.relative.y * camera_sensitivity
-		camera.rotation.x = clamp(camera.rotation.x, -PI/2, PI/2)
+		var deltay = -event.relative.x * camera_sensitivity
+		%CameraPivot.rotation.y += deltay
+		%CameraPlaneDirection.rotation.y = %CameraPivot.rotation.y
+		%CameraPivot.rotation.x += -event.relative.y * camera_sensitivity
+		%CameraPivot.rotation.x = clamp(%CameraPivot.rotation.x, -PI/2, PI/2)
 
 func _input(event):
 	if event.is_action_pressed("left_click"):
@@ -31,7 +32,10 @@ func _physics_process(delta):
 
 	var dir_z = Input.get_axis("backward", "forward")
 	var dir_x = Input.get_axis("right", "left")
-	velocity += -transform.basis.z * dir_z * speed
-	velocity += -transform.basis.x * dir_x * speed
+	velocity += -%CameraPlaneDirection.global_basis.z * dir_z * speed
+	velocity += -%CameraPlaneDirection.global_basis.x * dir_x * speed
+	
+	if velocity != Vector3.ZERO:
+		%Mesh.rotation.y = lerp(%Mesh.rotation.y, %CameraPlaneDirection.rotation.y, 0.1)
 
 	move_and_slide()
