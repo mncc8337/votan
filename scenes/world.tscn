@@ -31,9 +31,15 @@ sky = SubResource("Sky_nnsk1")
 
 [node name="world" type="Node3D"]
 
-[node name="Player" parent="." instance=ExtResource("1_k0juu")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.2437134, 25.093552, -1.9633074)
+[node name="CameraPivot" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.34997416, 0)
+
+[node name="Camera" type="Camera3D" parent="CameraPivot"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.134958, 4.9066215)
+
+[node name="Player" parent="." node_paths=PackedStringArray("camera_compound") instance=ExtResource("1_k0juu")]
 speed = 50.0
+camera_compound = NodePath("../CameraPivot")
 
 [node name="ChunkController" type="Node" parent="." node_paths=PackedStringArray("player")]
 script = ExtResource("1_4wyf3")

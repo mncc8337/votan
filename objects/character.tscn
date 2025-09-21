@@ -1,6 +1,8 @@
-[gd_scene load_steps=6 format=3 uid="uid://88gr4268v5wm"]
+[gd_scene load_steps=15 format=3 uid="uid://88gr4268v5wm"]
 
 [ext_resource type="Script" uid="uid://ig3ulegi1bqg" path="res://objects/character.gd" id="1_cxq7b"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cxq7b"]
 
 [sub_resource type="CapsuleMesh" id="CapsuleMesh_ybr1q"]
 
@@ -10,29 +12,88 @@ albedo_color = Color(0.0605303, 0.0605303, 0.0605303, 1)
 [sub_resource type="SphereMesh" id="SphereMesh_cxq7b"]
 material = SubResource("StandardMaterial3D_ybr1q")
 
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_cxq7b"]
+[sub_resource type="Animation" id="Animation_cxq7b"]
+length = 0.001
+
+[sub_resource type="Animation" id="Animation_bnbr5"]
+resource_name = "start_flying"
+length = 0.2
+tracks/0/type = "rotation_3d"
+tracks/0/imported = false
+tracks/0/enabled = true
+tracks/0/path = NodePath("Collision")
+tracks/0/interp = 1
+tracks/0/loop_wrap = true
+tracks/0/keys = PackedFloat32Array(0, 1, 0, 0, 0, 1, 0.2, 1, -0.707, 0, 0, 0.707)
+
+[sub_resource type="AnimationLibrary" id="AnimationLibrary_dkojc"]
+_data = {
+&"RESET": SubResource("Animation_cxq7b"),
+&"start_flying": SubResource("Animation_bnbr5")
+}
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_p6yo4"]
+animation = &"start_flying"
+
+[sub_resource type="AnimationNodeAnimation" id="AnimationNodeAnimation_71ofs"]
+animation = &"start_flying"
+play_mode = 1
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_bstgi"]
+advance_mode = 2
+advance_condition = &"is_flying"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_cxq7b"]
+advance_mode = 2
+advance_expression = "is_flying == true"
+
+[sub_resource type="AnimationNodeStateMachineTransition" id="AnimationNodeStateMachineTransition_bnbr5"]
+advance_mode = 2
+advance_expression = "is_flying == false"
+
+[sub_resource type="AnimationNodeStateMachine" id="AnimationNodeStateMachine_5fin4"]
+states/End/position = Vector2(855, 128)
+states/start_flying/node = SubResource("AnimationNodeAnimation_p6yo4")
+states/start_flying/position = Vector2(371, 100)
+states/stop_flying/node = SubResource("AnimationNodeAnimation_71ofs")
+states/stop_flying/position = Vector2(616, 58)
+transitions = ["Start", "start_flying", SubResource("AnimationNodeStateMachineTransition_bstgi"), "stop_flying", "start_flying", SubResource("AnimationNodeStateMachineTransition_cxq7b"), "start_flying", "stop_flying", SubResource("AnimationNodeStateMachineTransition_bnbr5")]
+graph_offset = Vector2(56.614563, 27)
 
 [node name="Character" type="CharacterBody3D"]
 script = ExtResource("1_cxq7b")
 
-[node name="Mesh" type="MeshInstance3D" parent="."]
+[node name="PivotPosition" type="Marker3D" parent="."]
 unique_name_in_owner = true
-mesh = SubResource("CapsuleMesh_ybr1q")
-
-[node name="Eye" type="MeshInstance3D" parent="Mesh"]
-transform = Transform3D(0.56, 0, 0, 0, 0.56, 0, 0, 0, 0.56, 0, 0.317064, -0.412862)
-mesh = SubResource("SphereMesh_cxq7b")
-skeleton = NodePath("../..")
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.3499744, 0)
 
 [node name="Collision" type="CollisionShape3D" parent="."]
 shape = SubResource("CapsuleShape3D_cxq7b")
 
+[node name="Mesh" type="MeshInstance3D" parent="Collision"]
+mesh = SubResource("CapsuleMesh_ybr1q")
+skeleton = NodePath("../..")
+
+[node name="Eye" type="MeshInstance3D" parent="Collision/Mesh"]
+transform = Transform3D(0.56, 0, 0, 0, 0.56, 0, 0, 0, 0.56, 0, 0.317064, -0.412862)
+mesh = SubResource("SphereMesh_cxq7b")
+skeleton = NodePath("../../..")
+
 [node name="CameraPivot" type="Marker3D" parent="."]
-unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.34997416, 0)
 
 [node name="Camera" type="Camera3D" parent="CameraPivot"]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.134958, 4.9066215)
 
-[node name="CameraPlaneDirection" type="Marker3D" parent="."]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="."]
+libraries = {
+&"": SubResource("AnimationLibrary_dkojc")
+}
+
+[node name="AnimationTree" type="AnimationTree" parent="."]
 unique_name_in_owner = true
+root_node = NodePath("%AnimationTree/..")
+tree_root = SubResource("AnimationNodeStateMachine_5fin4")
+advance_expression_base_node = NodePath("..")
+anim_player = NodePath("../AnimationPlayer")
+parameters/conditions/is_flying = true
