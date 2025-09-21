@@ -1,0 +1,14 @@
+[gd_scene format=3 uid="uid://dl53v8b1vfthp"]
+
+[node name="Tree" type="CSGCombiner3D"]
+
+[node name="CSGCylinder3D" type="CSGCylinder3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.04825, 0)
+radius = 0.337402
+height = 6.47583
+
+[node name="CSGSphere3D" type="CSGSphere3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.4303, 0)
+radius = 3.73049
+radial_segments = 4
+rings = 4
