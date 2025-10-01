@@ -9,6 +9,8 @@ extends StaticBody3D
 		chunk_position = new
 		update_pos()
 
+@export var chunk_vote: int = 3
+
 var resolution: int
 var amplitude: float
 var terrain_function: TerrainFunction
@@ -29,6 +31,10 @@ func set_param(_resolution: int, _amplitude: float, _terrain_function: TerrainFu
 	terrain_function = _terrain_function
 
 func tree_probability(x: float, y: float, noise: float, normal: Vector3, random_factor: float) -> float:
+	# below sealevel
+	if noise < 0:
+		return 0
+
 	var angle = abs(acos(normal.dot(Vector3.UP)))
 
 	return 1.0 / angle * 1.0 / (50 - noise) * random_factor

@@ -1,4 +1,10 @@
-[gd_scene format=3 uid="uid://dl53v8b1vfthp"]
+[gd_scene load_steps=3 format=3 uid="uid://dl53v8b1vfthp"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_17au5"]
+albedo_color = Color(0.36445042, 0.15144521, 0.19179729, 1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_j00qk"]
+albedo_color = Color(0.19215687, 0.84313726, 0.3764706, 1)
 
 [node name="Tree" type="CSGCombiner3D"]
 
@@ -6,9 +12,11 @@
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.04825, 0)
 radius = 0.337402
 height = 6.47583
+material = SubResource("StandardMaterial3D_17au5")
 
 [node name="CSGSphere3D" type="CSGSphere3D" parent="."]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 7.4303, 0)
 radius = 3.73049
 radial_segments = 4
 rings = 4
+material = SubResource("StandardMaterial3D_j00qk")

@@ -14,7 +14,10 @@ var chunk_loader_semaphore: Semaphore
 
 var chunk_load_thread : Thread
 
-@export_range(1, 16, 1) var render_distance: int = 2:
+@export var default_vote: int = 15
+@export var hide_threshold: int = 10
+
+@export_range(1, 32, 1) var render_distance: int = 2:
 	set(new): 
 		render_distance = new
 		reload_chunks()
@@ -52,18 +55,18 @@ func _ready() -> void:
 func _process(delta: float) -> void:
 	current_chunk_pos = get_chunk_position(player.position)
 	if current_chunk_pos != stored_chunk_pos:
-		move_chunks()
+		process_chunks()
 		stored_chunk_pos = current_chunk_pos
 
 func chunk_loader() -> void:
 	while true:
-		if len(unloaded_chunks) == 0:
+		if len(unloaded_chunks):
+			unloaded_chunks_mutex.lock()
+			unloaded_chunks.pop_front().update_mesh.call_deferred()
+			unloaded_chunks_mutex.unlock()
+		else:
 			# self-block if there is nothing to do
 			chunk_loader_semaphore.wait()
-		
-		unloaded_chunks_mutex.lock()
-		unloaded_chunks.pop_front().update_mesh.call_deferred()
-		unloaded_chunks_mutex.unlock()
 
 func reload_chunks() -> void:
 	if not player:
@@ -77,8 +80,8 @@ func reload_chunks() -> void:
 	
 	# generate points inside a circle
 	var valid_points: Array[Vector2i] = []
-	for y in range(-render_distance, render_distance + 1):
-		var max_x = int(floor(sqrt(render_distance * render_distance - y * y)))
+	for y in range(-render_distance * 1.5, render_distance * 1.5 + 1):
+		var max_x = int(floor(sqrt(render_distance * render_distance * 1.5 * 1.5 - y * y)))
 		for x in range(-max_x, max_x + 1):
 			valid_points.append(Vector2i(x, y) + get_chunk_position(player.position))
 	
@@ -88,41 +91,48 @@ func reload_chunks() -> void:
 		new_chunk.set_param(chunk_resolution, chunk_amplitude, terrain_function)
 		new_chunk.size = chunk_size
 		new_chunk.chunk_position = pos
+		new_chunk.chunk_vote = default_vote
 		add_child(new_chunk)
 		all_chunks.append(new_chunk)
 		add_to_render_queue(new_chunk)
 	chunk_loader_semaphore.post()
 
-func move_chunks() -> void:
+func process_chunks() -> void:
 	# generate points inside render ranges
-	var old_range_points: Array[Vector2i] = []
 	var new_range_points: Array[Vector2i] = []
 	for y in range(-render_distance, render_distance + 1):
 		var max_x = int(floor(sqrt(render_distance * render_distance - y * y)))
 		for x in range(-max_x, max_x + 1):
-			old_range_points.append(Vector2i(x, y) + stored_chunk_pos)
 			new_range_points.append(Vector2i(x, y) + current_chunk_pos)
 	
-	var overlap_points: Array[Vector2i] = []
-	for p1 in old_range_points:
-		for p2 in new_range_points:
-			if p1 == p2:
-				overlap_points.append(p1)
-				old_range_points.erase(p1)
-				new_range_points.erase(p1)
-
-	# now old_range_points should contain to be moved chunks' position
-	# and new_range_points should contain not filled positions
-	# and both should have the same length
-	
-	# move chunks to new position
+	# show existed chunks inside new range
 	for chunk in all_chunks:
-		if not len(old_range_points):
+		if not len(new_range_points):
 			break
-		if chunk.chunk_position in old_range_points:
-			old_range_points.erase(chunk.chunk_position)
-			chunk.chunk_position = new_range_points.pop_back()
-			add_to_render_queue(chunk)
+		if chunk.chunk_position in new_range_points:
+			new_range_points.erase(chunk.chunk_position)
+			if chunk.visible == false:
+				chunk.chunk_vote += hide_threshold * 1.5
+			chunk.visible = true
+			chunk.chunk_vote += 1
+		else:
+			chunk.chunk_vote -= 1
+			if chunk.chunk_vote <= 0:
+				all_chunks.erase(chunk)
+				chunk.queue_free()
+			elif chunk.chunk_vote < hide_threshold:
+				chunk.visible = false
+	
+	# add new chunks
+	for new_pos in new_range_points:
+		var new_chunk: Chunk = chunk_scene.instantiate()
+		new_chunk.set_param(chunk_resolution, chunk_amplitude, terrain_function)
+		new_chunk.size = chunk_size
+		new_chunk.chunk_position = new_pos
+		new_chunk.chunk_vote = default_vote
+		add_child(new_chunk)
+		all_chunks.append(new_chunk)
+		add_to_render_queue(new_chunk)
 	chunk_loader_semaphore.post()
 
 func update_terrain() -> void:

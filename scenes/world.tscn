@@ -1,12 +1,51 @@
-[gd_scene load_steps=11 format=3 uid="uid://f544tlbokj5m"]
+[gd_scene load_steps=17 format=3 uid="uid://f544tlbokj5m"]
 
 [ext_resource type="Script" uid="uid://bugedegi2fc42" path="res://scenes/chunk_controller.gd" id="1_4wyf3"]
 [ext_resource type="PackedScene" uid="uid://88gr4268v5wm" path="res://objects/character.tscn" id="1_k0juu"]
+[ext_resource type="Shader" uid="uid://cfdcwk7bec4du" path="res://sea.gdshader" id="2_71j4m"]
+[ext_resource type="Script" uid="uid://ccfdlxr8fl8w" path="res://scenes/sea.gd" id="2_k0juu"]
 [ext_resource type="Script" uid="uid://dcqrcncbyaa7x" path="res://scripts/noise_terrain.gd" id="3_4wyf3"]
 
-[sub_resource type="FastNoiseLite" id="FastNoiseLite_4wyf3"]
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_71j4m"]
+noise_type = 3
+frequency = 0.0033
+offset = Vector3(0, 739.13, 0)
+fractal_type = 2
+fractal_octaves = 6
+fractal_lacunarity = 2.13
+fractal_gain = 3.395
+fractal_weighted_strength = 1.0
 
-[sub_resource type="Resource" id="Resource_k0juu"]
+[sub_resource type="NoiseTexture2D" id="NoiseTexture2D_qfnet"]
+width = 64
+height = 64
+noise = SubResource("FastNoiseLite_71j4m")
+seamless = true
+as_normal_map = true
+normalize = false
+seamless_blend_skirt = 0.129
+bump_strength = 9.8
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_qfnet"]
+render_priority = 0
+shader = ExtResource("2_71j4m")
+shader_parameter/normal_map_texture = SubResource("NoiseTexture2D_qfnet")
+shader_parameter/water_color = Color(0.5223388, 0.6899478, 1, 1)
+shader_parameter/wave_direction_1 = Vector2(1, 1)
+shader_parameter/wave_direction_2 = Vector2(-0.86, 1)
+shader_parameter/time_scale_1 = 0.00999999977648
+shader_parameter/time_scale_2 = 0.00999999977648
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_k0juu"]
+material = SubResource("ShaderMaterial_qfnet")
+size = Vector2(1000, 1000)
+subdivide_width = 4
+subdivide_depth = 1024
+
+[sub_resource type="FastNoiseLite" id="FastNoiseLite_4wyf3"]
+frequency = 0.003
+
+[sub_resource type="Resource" id="Resource_4wyf3"]
 script = ExtResource("3_4wyf3")
 noises = Array[FastNoiseLite]([SubResource("FastNoiseLite_4wyf3")])
 metadata/_custom_type_script = "uid://dcqrcncbyaa7x"
@@ -38,16 +77,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.34997416, 0)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.134958, 4.9066215)
 
 [node name="Player" parent="." node_paths=PackedStringArray("camera_compound") instance=ExtResource("1_k0juu")]
-speed = 50.0
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.1287084, 0)
 camera_compound = NodePath("../CameraPivot")
+
+[node name="Sea" type="MeshInstance3D" parent="." node_paths=PackedStringArray("player")]
+mesh = SubResource("PlaneMesh_k0juu")
+script = ExtResource("2_k0juu")
+player = NodePath("../Player")
 
 [node name="ChunkController" type="Node" parent="." node_paths=PackedStringArray("player")]
 script = ExtResource("1_4wyf3")
 player = NodePath("../Player")
-render_distance = 3
-chunk_size = 128.0
-chunk_amplitude = 15.0
-terrain_function = SubResource("Resource_k0juu")
+render_distance = 4
+chunk_size = 64.0
+chunk_amplitude = 50.0
+terrain_function = SubResource("Resource_4wyf3")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
 environment = SubResource("Environment_rwgxs")
@@ -58,7 +102,7 @@ transform = Transform3D(1, 0, 0, 0, 0.571988, 0.820262, 0, -0.820262, 0.571988, 
 [node name="Boxes" type="Node" parent="."]
 
 [node name="1x1 scale" type="RigidBody3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.03488, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26.352007, 0)
 
 [node name="mesh" type="MeshInstance3D" parent="Boxes/1x1 scale"]
 mesh = SubResource("BoxMesh_4wyf3")
@@ -68,7 +112,7 @@ skeleton = NodePath("../../..")
 shape = SubResource("BoxShape3D_rwgxs")
 
 [node name="1x1 scale2" type="RigidBody3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.022375, 2.03488, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.022375, 26.352007, 0)
 
 [node name="mesh" type="MeshInstance3D" parent="Boxes/1x1 scale2"]
 mesh = SubResource("BoxMesh_4wyf3")
@@ -78,7 +122,7 @@ skeleton = NodePath("../../..")
 shape = SubResource("BoxShape3D_rwgxs")
 
 [node name="1x1 scale3" type="RigidBody3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.03488, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26.352007, 0)
 
 [node name="mesh" type="MeshInstance3D" parent="Boxes/1x1 scale3"]
 mesh = SubResource("BoxMesh_4wyf3")
@@ -88,7 +132,7 @@ skeleton = NodePath("../../..")
 shape = SubResource("BoxShape3D_rwgxs")
 
 [node name="1x1 scale4" type="RigidBody3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.03488, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26.352007, 0)
 
 [node name="mesh" type="MeshInstance3D" parent="Boxes/1x1 scale4"]
 mesh = SubResource("BoxMesh_4wyf3")
@@ -98,7 +142,7 @@ skeleton = NodePath("../../..")
 shape = SubResource("BoxShape3D_rwgxs")
 
 [node name="1x1 scale5" type="RigidBody3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.03488, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26.352007, 0)
 
 [node name="mesh" type="MeshInstance3D" parent="Boxes/1x1 scale5"]
 mesh = SubResource("BoxMesh_4wyf3")
@@ -108,7 +152,7 @@ skeleton = NodePath("../../..")
 shape = SubResource("BoxShape3D_rwgxs")
 
 [node name="1x1 scale6" type="RigidBody3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.03488, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26.352007, 0)
 
 [node name="mesh" type="MeshInstance3D" parent="Boxes/1x1 scale6"]
 mesh = SubResource("BoxMesh_4wyf3")
@@ -118,7 +162,7 @@ skeleton = NodePath("../../..")
 shape = SubResource("BoxShape3D_rwgxs")
 
 [node name="1x1 scale7" type="RigidBody3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.03488, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26.352007, 0)
 
 [node name="mesh" type="MeshInstance3D" parent="Boxes/1x1 scale7"]
 mesh = SubResource("BoxMesh_4wyf3")
@@ -128,7 +172,7 @@ skeleton = NodePath("../../..")
 shape = SubResource("BoxShape3D_rwgxs")
 
 [node name="1x1 scale8" type="RigidBody3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.03488, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26.352007, 0)
 
 [node name="mesh" type="MeshInstance3D" parent="Boxes/1x1 scale8"]
 mesh = SubResource("BoxMesh_4wyf3")
@@ -138,7 +182,7 @@ skeleton = NodePath("../../..")
 shape = SubResource("BoxShape3D_rwgxs")
 
 [node name="1x1 scale9" type="RigidBody3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.03488, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26.352007, 0)
 
 [node name="mesh" type="MeshInstance3D" parent="Boxes/1x1 scale9"]
 mesh = SubResource("BoxMesh_4wyf3")
@@ -148,7 +192,7 @@ skeleton = NodePath("../../..")
 shape = SubResource("BoxShape3D_rwgxs")
 
 [node name="1x1 scale10" type="RigidBody3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.03488, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26.352007, 0)
 
 [node name="mesh" type="MeshInstance3D" parent="Boxes/1x1 scale10"]
 mesh = SubResource("BoxMesh_4wyf3")
@@ -158,7 +202,7 @@ skeleton = NodePath("../../..")
 shape = SubResource("BoxShape3D_rwgxs")
 
 [node name="1x1 scale11" type="RigidBody3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.03488, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26.352007, 0)
 
 [node name="mesh" type="MeshInstance3D" parent="Boxes/1x1 scale11"]
 mesh = SubResource("BoxMesh_4wyf3")
@@ -168,7 +212,7 @@ skeleton = NodePath("../../..")
 shape = SubResource("BoxShape3D_rwgxs")
 
 [node name="1x1 scale12" type="RigidBody3D" parent="Boxes"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.03488, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 26.352007, 0)
 
 [node name="mesh" type="MeshInstance3D" parent="Boxes/1x1 scale12"]
 mesh = SubResource("BoxMesh_4wyf3")

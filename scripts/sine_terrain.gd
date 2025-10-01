@@ -2,30 +2,23 @@
 class_name SineTerrain
 extends TerrainFunction
 
-@export var a := 1.0:
+@export_enum("x", "y") var component: int
+
+@export var amplitude := 1.0:
 	set(new):
-		a = new
+		amplitude = new
 		function_changed.emit()
-@export var b := 1.0:
+@export var angular_frequency := 1.0:
 	set(new):
-		b = new
+		angular_frequency = new
 		function_changed.emit()
-@export var c := 1.0:
+@export var phase := 0.0:
 	set(new):
-		c = new
-		function_changed.emit()
-@export var d := 1.0:
-	set(new):
-		d = new
-		function_changed.emit()
-@export var e := 1.0:
-	set(new):
-		e = new
-		function_changed.emit()
-@export var f := 1.0:
-	set(new):
-		f = new
+		phase = new
 		function_changed.emit()
 
 func get_height(x: float, y: float) -> float:
-	return a * sin(b * x + c) + d * sin(e * y + f)
+	if component == 0:
+		return amplitude * sin(angular_frequency * x + phase)
+	else:
+		return amplitude * sin(angular_frequency * y + phase)
